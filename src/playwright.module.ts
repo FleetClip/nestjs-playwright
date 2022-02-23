@@ -1,43 +1,43 @@
 import { Module, DynamicModule } from '@nestjs/common';
-import { createPuppeteerProviders } from './puppeteer.providers';
-import { PuppeteerCoreModule } from './puppeteer-core.module';
+import { createPlaywrightProviders } from './playwright.providers';
+import { PlaywrightCoreModule } from './playwright-core.module';
 import type {
-  PuppeteerModuleAsyncOptions,
-  PuppeteerModuleOptions,
-} from './interfaces/puppeteer-options.interface';
+  PlaywrightModuleAsyncOptions,
+  PlaywrightModuleOptions,
+} from './interfaces/playwright-options.interface';
 
 /**
- * Module for the Puppeteer
+ * Module for the Playwright
  */
 @Module({})
-export class PuppeteerModule {
+export class PlaywrightModule {
   /**
-   * Inject the Puppeteer synchronously.
+   * Inject the Playwright synchronously.
    * @param options Options for the Browser to be launched
    * @param instanceName A unique name for the connection.  If not specified, a default name
    * will be used.
    */
   static forRoot(
-    options?: PuppeteerModuleOptions['launchOptions'] & { isGlobal?: boolean },
+    options?: PlaywrightModuleOptions['launchOptions'] & { isGlobal?: boolean },
     instanceName?: string,
   ): DynamicModule {
     return {
-      module: PuppeteerModule,
+      module: PlaywrightModule,
       global: options?.isGlobal,
-      imports: [PuppeteerCoreModule.forRoot(options, instanceName)],
+      imports: [PlaywrightCoreModule.forRoot(options, instanceName)],
     };
   }
 
   /**
-   * Inject the Puppeteer asynchronously, allowing any dependencies such as a configuration
+   * Inject the Playwright asynchronously, allowing any dependencies such as a configuration
    * service to be injected first.
    * @param options Options for asynchronous injection
    */
-  static forRootAsync(options: PuppeteerModuleAsyncOptions): DynamicModule {
+  static forRootAsync(options: PlaywrightModuleAsyncOptions): DynamicModule {
     return {
-      module: PuppeteerModule,
+      module: PlaywrightModule,
       global: options.isGlobal,
-      imports: [PuppeteerCoreModule.forRootAsync(options)],
+      imports: [PlaywrightCoreModule.forRootAsync(options)],
     };
   }
 
@@ -51,9 +51,9 @@ export class PuppeteerModule {
     pages: string[] = [],
     instanceName?: string,
   ): DynamicModule {
-    const providers = createPuppeteerProviders(instanceName, pages);
+    const providers = createPlaywrightProviders(instanceName, pages);
     return {
-      module: PuppeteerModule,
+      module: PlaywrightModule,
       providers,
       exports: providers,
     };

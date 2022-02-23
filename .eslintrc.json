@@ -17,7 +17,7 @@
     "plugin:@typescript-eslint/recommended",
     "plugin:@typescript-eslint/recommended-requiring-type-checking",
     "prettier",
-    "prettier/@typescript-eslint",
+    // "prettier/@typescript-eslint",
     "plugin:node/recommended",
     "plugin:import/typescript"
   ],
@@ -33,6 +33,7 @@
     ],
     "@typescript-eslint/explicit-module-boundary-types": "off",
     "@typescript-eslint/no-unsafe-assignment": "off",
+    "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/require-await": "off",
     "node/no-unsupported-features/es-syntax": [
       "error",

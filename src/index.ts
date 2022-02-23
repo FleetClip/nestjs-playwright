@@ -1,4 +1,4 @@
-export * from './puppeteer.decorators';
-export * from './puppeteer.module';
-export * from './puppeteer.util';
+export * from './playwright.decorators';
+export * from './playwright.module';
+export * from './playwright.util';
 export * from './interfaces';

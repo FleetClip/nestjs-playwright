@@ -1,11 +1,14 @@
-import type { LaunchOptions } from 'puppeteer';
+import type { LaunchOptions } from 'playwright';
 
-export const PUPPETEER_INSTANCE_NAME = 'PuppeteerInstanceName';
-export const PUPPETEER_MODULE_OPTIONS = 'PuppeteerModuleOptions';
+export const PLAYWRIGHT_INSTANCE_NAME = 'PlaywrightInstanceName';
+export const PLAYWRIGHT_MODULE_OPTIONS = 'PlaywrightModuleOptions';
 
-export const DEFAULT_PUPPETEER_INSTANCE_NAME = 'DefaultPuppeteer';
+export const DEFAULT_PLAYWRIGHT_INSTANCE_NAME = 'DefaultPlaywright';
 
 const args: LaunchOptions['args'] = [
+  '--disable-gpu', // Disable GPU
+  '--no-first-run', // Disable Homepage
+  '--disable-dev-shm-usage', // Disable Shared Memory
   '--allow-insecure-localhost', // Enables TLS/SSL errors on localhost to be ignored (no interstitial, no blocking of requests).
   '--allow-http-screen-capture', // Allow non-secure origins to use the screen capture API and the desktopCapture extension API.
   '--no-zygote', // https://codereview.chromium.org/2384163002
@@ -17,6 +20,6 @@ if (typeof process.getuid === 'function') {
 
 export const DEFAULT_CHROME_LAUNCH_OPTIONS: LaunchOptions = {
   headless: true,
-  pipe: process.platform !== 'win32',
   args,
+  channel: 'chrome',
 };

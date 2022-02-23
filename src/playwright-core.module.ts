@@ -8,31 +8,32 @@ import {
   OnModuleDestroy,
 } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
-import type { LaunchOptions, Browser, BrowserContext } from 'puppeteer';
-import { launch } from 'puppeteer';
+import type { LaunchOptions, Browser, BrowserContext } from 'playwright';
+import { chromium } from 'playwright';
+
 import {
-  PUPPETEER_INSTANCE_NAME,
-  DEFAULT_PUPPETEER_INSTANCE_NAME,
+  PLAYWRIGHT_INSTANCE_NAME,
+  DEFAULT_PLAYWRIGHT_INSTANCE_NAME,
   DEFAULT_CHROME_LAUNCH_OPTIONS,
-  PUPPETEER_MODULE_OPTIONS,
-} from './puppeteer.constants';
+  PLAYWRIGHT_MODULE_OPTIONS,
+} from './playwright.constants';
 import type {
-  PuppeteerModuleAsyncOptions,
-  PuppeteerOptionsFactory,
-  PuppeteerModuleOptions,
-} from './interfaces/puppeteer-options.interface';
+  PlaywrightModuleAsyncOptions,
+  PlaywrightOptionsFactory,
+  PlaywrightModuleOptions,
+} from './interfaces/playwright-options.interface';
 import {
   getBrowserToken,
   getContextToken,
   getPageToken,
-} from './puppeteer.util';
+} from './playwright.util';
 
 @Global()
 @Module({})
-export class PuppeteerCoreModule
+export class PlaywrightCoreModule
   implements OnApplicationShutdown, OnModuleDestroy {
   constructor(
-    @Inject(PUPPETEER_INSTANCE_NAME) private readonly instanceName: string,
+    @Inject(PLAYWRIGHT_INSTANCE_NAME) private readonly instanceName: string,
     private readonly moduleRef: ModuleRef,
   ) {}
   onApplicationShutdown() {
@@ -41,24 +42,24 @@ export class PuppeteerCoreModule
 
   static forRoot(
     launchOptions: LaunchOptions = DEFAULT_CHROME_LAUNCH_OPTIONS,
-    instanceName: string = DEFAULT_PUPPETEER_INSTANCE_NAME,
+    instanceName: string = DEFAULT_PLAYWRIGHT_INSTANCE_NAME,
   ): DynamicModule {
     const instanceNameProvider = {
-      provide: PUPPETEER_INSTANCE_NAME,
+      provide: PLAYWRIGHT_INSTANCE_NAME,
       useValue: instanceName,
     };
 
     const browserProvider = {
       provide: getBrowserToken(instanceName),
       async useFactory() {
-        return await launch(launchOptions);
+        return await chromium.launch(launchOptions);
       },
     };
 
     const contextProvider = {
       provide: getContextToken(instanceName),
       async useFactory(browser: Browser) {
-        return browser.createIncognitoBrowserContext();
+        return browser.newContext();
       },
       inject: [getBrowserToken(instanceName)],
     };
@@ -72,7 +73,7 @@ export class PuppeteerCoreModule
     };
 
     return {
-      module: PuppeteerCoreModule,
+      module: PlaywrightCoreModule,
       providers: [
         instanceNameProvider,
         browserProvider,
@@ -83,51 +84,51 @@ export class PuppeteerCoreModule
     };
   }
 
-  static forRootAsync(options: PuppeteerModuleAsyncOptions): DynamicModule {
-    const puppeteerInstanceName =
-      options.instanceName ?? DEFAULT_PUPPETEER_INSTANCE_NAME;
+  static forRootAsync(options: PlaywrightModuleAsyncOptions): DynamicModule {
+    const playwrightInstanceName =
+      options.instanceName ?? DEFAULT_PLAYWRIGHT_INSTANCE_NAME;
 
     const instanceNameProvider = {
-      provide: PUPPETEER_INSTANCE_NAME,
-      useValue: puppeteerInstanceName,
+      provide: PLAYWRIGHT_INSTANCE_NAME,
+      useValue: playwrightInstanceName,
     };
 
     const browserProvider = {
-      provide: getBrowserToken(puppeteerInstanceName),
-      async useFactory(puppeteerModuleOptions: PuppeteerModuleOptions) {
-        return await launch(
-          puppeteerModuleOptions.launchOptions ?? DEFAULT_CHROME_LAUNCH_OPTIONS,
+      provide: getBrowserToken(playwrightInstanceName),
+      async useFactory(playwrightModuleOptions: PlaywrightModuleOptions) {
+        return await chromium.launch(
+          playwrightModuleOptions.launchOptions ?? DEFAULT_CHROME_LAUNCH_OPTIONS,
         );
       },
-      inject: [PUPPETEER_MODULE_OPTIONS],
+      inject: [PLAYWRIGHT_MODULE_OPTIONS],
     };
 
     const contextProvider = {
-      provide: getContextToken(puppeteerInstanceName),
+      provide: getContextToken(playwrightInstanceName),
       async useFactory(browser: Browser) {
-        return await browser.createIncognitoBrowserContext();
+        return await browser.newContext();
       },
       inject: [
-        PUPPETEER_MODULE_OPTIONS,
-        getBrowserToken(puppeteerInstanceName),
+        PLAYWRIGHT_MODULE_OPTIONS,
+        getBrowserToken(playwrightInstanceName),
       ],
     };
 
     const pageProvider = {
-      provide: getPageToken(puppeteerInstanceName),
+      provide: getPageToken(playwrightInstanceName),
       async useFactory(context: BrowserContext) {
         return await context.newPage();
       },
       inject: [
-        PUPPETEER_MODULE_OPTIONS,
-        getContextToken(puppeteerInstanceName),
+        PLAYWRIGHT_MODULE_OPTIONS,
+        getContextToken(playwrightInstanceName),
       ],
     };
 
     const asyncProviders = this.createAsyncProviders(options);
 
     return {
-      module: PuppeteerCoreModule,
+      module: PlaywrightCoreModule,
       imports: options.imports,
       providers: [
         ...asyncProviders,
@@ -149,7 +150,7 @@ export class PuppeteerCoreModule
   }
 
   private static createAsyncProviders(
-    options: PuppeteerModuleAsyncOptions,
+    options: PlaywrightModuleAsyncOptions,
   ): Provider[] {
     if (options.useExisting || options.useFactory) {
       return [this.createAsyncOptionsProvider(options)];
@@ -167,32 +168,32 @@ export class PuppeteerCoreModule
   }
 
   private static createAsyncOptionsProvider(
-    options: PuppeteerModuleAsyncOptions,
+    options: PlaywrightModuleAsyncOptions,
   ): Provider {
     if (options.useFactory) {
       return {
-        provide: PUPPETEER_MODULE_OPTIONS,
+        provide: PLAYWRIGHT_MODULE_OPTIONS,
         useFactory: options.useFactory,
         inject: options.inject ?? [],
       };
     } else if (options.useExisting) {
       return {
-        provide: PUPPETEER_MODULE_OPTIONS,
-        async useFactory(optionsFactory: PuppeteerOptionsFactory) {
-          return optionsFactory.createPuppeteerOptions();
+        provide: PLAYWRIGHT_MODULE_OPTIONS,
+        async useFactory(optionsFactory: PlaywrightOptionsFactory) {
+          return optionsFactory.createPlaywrightOptions();
         },
         inject: [options.useExisting],
       };
     } else if (options.useClass) {
       return {
-        provide: PUPPETEER_MODULE_OPTIONS,
-        async useFactory(optionsFactory: PuppeteerOptionsFactory) {
-          return optionsFactory.createPuppeteerOptions();
+        provide: PLAYWRIGHT_MODULE_OPTIONS,
+        async useFactory(optionsFactory: PlaywrightOptionsFactory) {
+          return optionsFactory.createPlaywrightOptions();
         },
         inject: [options.useClass],
       };
     } else {
-      throw new Error('Invalid PuppeteerModule options');
+      throw new Error('Invalid PlaywrightModule options');
     }
   }
 }

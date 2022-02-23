@@ -1,7 +1,7 @@
-import type { BrowserContext } from 'puppeteer';
-import { getContextToken, getPageToken } from './puppeteer.util';
+import type { BrowserContext } from 'playwright';
+import { getContextToken, getPageToken } from './playwright.util';
 
-export function createPuppeteerProviders(
+export function createPlaywrightProviders(
   instanceName?: string,
   pages: string[] = [],
 ) {

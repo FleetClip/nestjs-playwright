@@ -3,7 +3,7 @@ import {
   getBrowserToken,
   getContextToken,
   getPageToken,
-} from './puppeteer.util';
+} from './playwright.util';
 
 /**
  * Inject the Browser object associated with a connection
@@ -13,14 +13,14 @@ export const InjectBrowser = (instanceName?: string) =>
   Inject(getBrowserToken(instanceName));
 
 /**
- * Inject the Puppeteer BrowserContext object associated with a browser
+ * Inject the Playwright BrowserContext object associated with a browser
  * @param instanceName The unique name associated with the browser
  */
 export const InjectContext = (instanceName?: string) =>
   Inject(getContextToken(instanceName));
 
 /**
- * Inject the Puppeteer Page object associated with BrowserContext
+ * Inject the Playwright Page object associated with BrowserContext
  * @param instanceName The unique name associated with the instance
  */
 export const InjectPage = (instanceName?: string) =>
