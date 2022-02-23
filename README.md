@@ -1,16 +1,17 @@
-# nest-puppeteer [![codecov](https://codecov.io/gh/tinovyatkin/nest-puppeteer/branch/master/graph/badge.svg)](https://codecov.io/gh/tinovyatkin/nest-puppeteer)
+# nestjs-playwright
 
 ## Description
 
-This is a Puppeteer module for [NestJS](https://nestjs.com/), making it easy to inject the [Puppeteer](https://github.com/puppeteer/puppeteer) into your project. It's modeled after the official modules, allowing for asynchronous configuration and such.
+This is a Playwright module for [NestJS](https://nestjs.com/), making it easy to inject the [playwright](https://playwright.dev) into your project. It's modeled after the official modules, allowing for asynchronous configuration and such.
+
+Inspired and forked from [nest-puppeteer](https://github.com/tinovyatkin/nest-puppeteer)
 
 ## Installation
 
 In your existing NestJS-based project:
 
 ```sh
-npm install nest-puppeteer puppeteer
-npm install -D @types/puppeteer
+npm install nestjs-playwright playwright
 ```
 
 ## Usage
@@ -19,16 +20,20 @@ Overall, it works very similarly to any injectable module described in the NestJ
 
 ### Simple example
 
-In the simplest case, you can explicitly specify options you'd normally provide to your `puppeteer.launch` or the instance name using `PuppeteerModule.forRoot()`:
+In the simplest case, you can explicitly specify options you'd normally provide to your `playwright.chromium.launch` or the instance name using `PlaywrightModule.forRoot()`:
 
 ```typescript
 import { Module } from '@nestjs/common';
-import { PuppeteerModule } from 'nest-puppeteer';
+import { PlaywrightModule } from 'nestjs-playwright';
 
 @Module({
   imports: [
-    PuppeteerModule.forRoot(
-      { pipe: true }, // optional, any Puppeteer launch options here or leave empty for good defaults */,
+    PlaywrightModule.forRoot(
+      { 
+        headless: true,
+        channel: 'chrome',
+        isGlobal: true, 
+      }, // optional, any Playwright launch options here or leave empty for good defaults */,
       'BrowserInstanceName', // optional, can be useful for using Chrome and Firefox in the same project
     ),
   ],
@@ -36,12 +41,12 @@ import { PuppeteerModule } from 'nest-puppeteer';
 export class CatsModule {}
 ```
 
-To inject the Puppeteer `Browser` object:
+To inject the Playwright `Browser` object:
 
 ```typescript
-import type { Browser } from 'puppeteer';
+import type { Browser } from 'playwright';
 import { Injectable } from '@nestjs/common';
-import { InjectBrowser } from 'nest-puppeteer';
+import { InjectBrowser } from 'nestjs-playwright';
 import { Cat } from './interfaces/cat';
 
 @Injectable()
@@ -49,7 +54,7 @@ export class CatsRepository {
   constructor(@InjectBrowser() private readonly browser: Browser) {}
 
   async create(cat: Cat) {
-    const version = await this.browser.version();
+    const version = this.browser.version();
     return { version };
   }
 }
@@ -59,12 +64,12 @@ To inject a new incognito `BrowserContext` object:
 
 ```typescript
 import { Module } from '@nestjs/common';
-import { PuppeteerModule } from 'nest-puppeteer';
+import { PlaywrightModule } from 'nestjs-playwright';
 import { CatsController } from './cats.controller';
 import { CatsService } from './cats.service';
 
 @Module({
-  imports: [PuppeteerModule.forFeature()],
+  imports: [PlaywrightModule.forFeature()],
   controllers: [CatsController],
   providers: [CatsService],
 })
@@ -72,9 +77,9 @@ export class CatsModule {}
 ```
 
 ```typescript
-import type { BrowserContext } from 'puppeteer';
+import type { BrowserContext } from 'playwright';
 import { Injectable } from '@nestjs/common';
-import { InjectContext } from 'nest-puppeteer';
+import { InjectContext } from 'nestjs-playwright';
 import { Cat } from './interfaces/cat';
 
 @Injectable()
@@ -95,8 +100,8 @@ Inject `Page` object:
 
 ```typescript
 import { Injectable } from '@nestjs/common';
-import { InjectPage } from 'nest-puppeteer';
-import type { Page } from 'puppeteer';
+import { InjectPage } from 'nestjs-playwright';
+import type { Page } from 'playwright';
 
 @Injectable()
 export class CrawlerService {
@@ -112,7 +117,7 @@ export class CrawlerService {
 
 ### Asynchronous configuration
 
-If you want to pass in Puppeteer configuration options from a ConfigService or other provider, you'll need to perform the Puppeteer module configuration asynchronously, using `PuppeteerModule.forRootAsync()`. There are several different ways of doing this.
+If you want to pass in Playwright configuration options from a ConfigService or other provider, you'll need to perform the Playwright module configuration asynchronously, using `PlaywrightModule.forRootAsync()`. There are several different ways of doing this.
 
 #### Use a factory function
 
@@ -120,11 +125,11 @@ The first is to specify a factory function that populates the options:
 
 ```typescript
 import { Module } from '@nestjs/common'
-import { PuppeteerModule } from 'nest-puppeteer'
+import { PlaywrightModule } from 'nestjs-playwright'
 import { ConfigService } from '../config/config.service'
 
 @Module({
-    imports: [PuppeteerModule.forRootAsync({
+    imports: [PlaywrightModule.forRootAsync({
         imports: [ConfigModule],
         useFactory: (config: ConfigService) => {
             launchOptions: config.chromeLaunchOptions,
@@ -137,22 +142,22 @@ export class CatsModule {}
 
 #### Use a class
 
-Alternatively, you can write a class that implements the `PuppeteerOptionsFactory` interface and use that to create the options:
+Alternatively, you can write a class that implements the `PlaywrightOptionsFactory` interface and use that to create the options:
 
 ```typescript
 import { Module } from '@nestjs/common';
 import {
-  PuppeteerModule,
-  PuppeteerOptionsFactory,
-  PuppeteerModuleOptions,
-} from 'nest-puppeteer';
+  PlaywrightModule,
+  PlaywrightOptionsFactory,
+  PlaywrightModuleOptions,
+} from 'nestjs-playwright';
 
 @Injectable()
-export class PuppeteerConfigService implements PuppeteerOptionsFactory {
+export class PlaywrightConfigService implements PlaywrightOptionsFactory {
   private readonly launchOptions = { pipe: true };
   private readonly dbName = 'BestAppEver';
 
-  createMongoOptions(): PuppeteerModuleOptions {
+  createMongoOptions(): PlaywrightModuleOptions {
     return {
       launchOptions: this.launchOptions,
       instanceName: this.instanceName,
@@ -162,27 +167,27 @@ export class PuppeteerConfigService implements PuppeteerOptionsFactory {
 
 @Module({
   imports: [
-    PuppeteerModule.forRootAsync({
-      useClass: PuppeteerConfigService,
+    PlaywrightModule.forRootAsync({
+      useClass: PlaywrightConfigService,
     }),
   ],
 })
 export class CatsModule {}
 ```
 
-Just be aware that the `useClass` option will instantiate your class inside the PuppeteerModule, which may not be what you want.
+Just be aware that the `useClass` option will instantiate your class inside the PlaywrightModule, which may not be what you want.
 
 #### Use existing
 
-If you wish to instead import your PuppeteerConfigService class from a different module, the `useExisting` option will allow you to do that.
+If you wish to instead import your PlaywrightConfigService class from a different module, the `useExisting` option will allow you to do that.
 
 ```typescript
 import { Module } from '@nestjs/common'
-import { PuppeteerModule } from 'nest-puppeteer'
+import { PlaywrightModule } from 'nest-playwright'
 import { ConfigModule, ConfigService } from '../config/config.service'
 
 @Module({
-    imports: [PuppeteerModule.forRootAsync({
+    imports: [PlaywrightModule.forRootAsync({
         imports: [ConfigModule]
         useExisting: ConfigService
     })]
@@ -190,22 +195,27 @@ import { ConfigModule, ConfigService } from '../config/config.service'
 export class CatsModule {}
 ```
 
-In this example, we're assuming that `ConfigService` implements the `PuppeteerOptionsFactory` interface and can be found in the ConfigModule.
+In this example, we're assuming that `ConfigService` implements the `PlaywrightOptionsFactory` interface and can be found in the ConfigModule.
 
 #### Use module globally
 
-When you want to use `PuppeteerModule` in other modules, you'll need to import it (as is standard with any Nest module). Alternatively, declare it as a [global module](https://docs.nestjs.com/modules#global-modules) by setting the options object's `isGlobal` property to `true`, as shown below. In that case, you will not need to import `PuppeteerModule` in other modules once it's been loaded in the root module (e.g., `AppModule`).
+When you want to use `PlaywrightModule` in other modules, you'll need to import it (as is standard with any Nest module). Alternatively, declare it as a [global module](https://docs.nestjs.com/modules#global-modules) by setting the options object's `isGlobal` property to `true`, as shown below. In that case, you will not need to import `PlaywrightModule` in other modules once it's been loaded in the root module (e.g., `AppModule`).
 
 ```typescript
-PuppeteerModule.forRoot({
+PlaywrightModule.forRoot({
   isGlobal: true,
 });
 ```
 
+## Todo
+
+- [ ] Support for Firefox & Opera
+
 ## Stay in touch
 
-- Author - [Konstantin Vyatkin](tino@vtkn.io)
+- Original Author - [Konstantin Vyatkin](tino@vtkn.io)
+- Author - [FleetClip](fleetclip@protonmail.com)
 
 ## License
 
-`nest-puppeteer` is [MIT licensed](LICENSE).
+`nestjs-playwright` is [MIT licensed](LICENSE).
