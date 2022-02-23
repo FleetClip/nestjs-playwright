@@ -1,12 +1,12 @@
 import { Controller, Post, Body, Get } from '@nestjs/common';
 import { CrawlerService } from './crawler.service';
-import { InjectContext } from '../../src/';
-import { BrowserContext } from 'puppeteer';
+// import { InjectContext } from '../../src/';
+// import { BrowserContext } from 'playwright';
 
 @Controller('crawler')
 export class CrawlerController {
   constructor(
-    @InjectContext() private readonly context: BrowserContext,
+    // @InjectContext() private readonly context: BrowserContext,
     private readonly crawlerService: CrawlerService,
   ) {}
 
@@ -17,6 +17,6 @@ export class CrawlerController {
 
   @Get('/context')
   async contextType() {
-    return { incognito: this.context.isIncognito() };
+    return { incognito: true }; // Always true
   }
 }

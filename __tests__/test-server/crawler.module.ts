@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { PuppeteerModule } from '../../src/';
+import { PlaywrightModule } from '../../src/';
 
-@Module({ imports: [PuppeteerModule.forFeature(['crawler']), CrawlerModule] })
+@Module({ imports: [PlaywrightModule.forFeature(['crawler']), CrawlerModule] })
 export class CrawlerModule {}
